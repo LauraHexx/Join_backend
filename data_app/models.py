@@ -8,7 +8,7 @@ class Contact(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
-    phone = models.CharField(max_length=3)
+    phone = models.CharField(max_length=20)
     color = models.CharField(max_length=7)  # Hex Code
 
     def __str__(self):
