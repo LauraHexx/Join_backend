@@ -43,3 +43,9 @@
 #    phone="01234566789",
 # )
 #
+
+
+# Category.objects.create(user_id=1, color="blue", name="Developing")
+# Category.objects.create(user_id=1, color="red", name="HR")
+# Category.objects.create(user_id=1, color="orange", name="Marketing")
+# Category.objects.create(user_id=1, color="green", name="Sales")

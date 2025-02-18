@@ -1,8 +1,12 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from data_app.models import Contact
-from .serializers import ContactSerializer, ContactHyperlinkedSerializer
+from data_app.models import Contact, Category
+from .serializers import (
+    ContactSerializer,
+    ContactHyperlinkedSerializer,
+    CategorySerializer,
+)
 
 
 # Create your views here.
@@ -22,3 +26,8 @@ class ContactViewSet(viewsets.ModelViewSet):
         contact = get_object_or_404(self.queryset, pk=pk)
         serializer = ContactHyperlinkedSerializer(contact, context={"request": request})
         return Response(serializer.data)
+
+
+class CategoryViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
