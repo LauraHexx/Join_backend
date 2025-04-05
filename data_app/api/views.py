@@ -10,6 +10,7 @@ from .serializers import (
     TaskWriteSerializer,
     SummarySerializer,
 )
+from user_auth_app.api.permissions import IsOwnerOrAdmin
 
 
 # Create your views here.
@@ -29,26 +30,20 @@ class UserOwnedViewSet(viewsets.GenericViewSet):
 
 # kann alles
 class ContactViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsOwnerOrAdmin]
     serializer_class = ContactSerializer
     queryset = Contact.objects.all()  # Für die automatische Bestimmung des `basename`
-
-    def get_queryset(self):
-        # Filtert Kontakte basierend auf dem angemeldeten Benutzer
-        return Contact.objects.filter(user=self.request.user)
-
-    def retrieve(self, request, pk=None):
-        contact = get_object_or_404(self.queryset, pk=pk)
-        serializer = ContactHyperlinkedSerializer(contact, context={"request": request})
-        return Response(serializer.data)
 
 
 # nur lesen + hinfügen
 class CategoryViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsOwnerOrAdmin]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
 class TaskViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsOwnerOrAdmin]
     queryset = Task.objects.all()
 
     def get_serializer_class(self):
