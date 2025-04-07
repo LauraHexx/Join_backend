@@ -4,13 +4,14 @@ from django.shortcuts import get_object_or_404
 from data_app.models import Contact, Category, Task, Subtask
 from .serializers import (
     ContactSerializer,
-    ContactHyperlinkedSerializer,
     CategorySerializer,
     TaskReadSerializer,
     TaskWriteSerializer,
+    SubTaskReadSerializer,
+    SubTaskWriteSerializer,
     SummarySerializer,
 )
-from user_auth_app.api.permissions import IsOwnerOrAdmin
+from user_auth_app.api.permissions import IsOwnerOrAdmin, IsSubtaskOwnerOrAdmin
 
 
 # Create your views here.
@@ -29,20 +30,22 @@ class UserOwnedViewSet(viewsets.GenericViewSet):
 
 
 # kann alles
-class ContactViewSet(viewsets.ModelViewSet):
+class ContactViewSet(UserOwnedViewSet, viewsets.ModelViewSet):
     permission_classes = [IsOwnerOrAdmin]
+    queryset = Contact.objects.all()
     serializer_class = ContactSerializer
-    queryset = Contact.objects.all()  # Für die automatische Bestimmung des `basename`
 
 
 # nur lesen + hinfügen
-class CategoryViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet):
+class CategoryViewSet(
+    UserOwnedViewSet, mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet
+):
     permission_classes = [IsOwnerOrAdmin]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
-class TaskViewSet(viewsets.ModelViewSet):
+class TaskViewSet(UserOwnedViewSet, viewsets.ModelViewSet):
     permission_classes = [IsOwnerOrAdmin]
     queryset = Task.objects.all()
 
@@ -52,8 +55,25 @@ class TaskViewSet(viewsets.ModelViewSet):
         return TaskWriteSerializer
 
 
+class SubtaskViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsSubtaskOwnerOrAdmin]
+    queryset = Subtask.objects.all()
+
+    def get_queryset(self):
+        # Zeige nur Subtasks, deren zugehöriger Task dem aktuellen User gehört
+        return self.queryset.filter(task__user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action in ["list", "retrieve"]:
+            return SubTaskReadSerializer
+        return SubTaskWriteSerializer
+
+
 # nur lesen
-class SummaryViewSet(viewsets.ViewSet):
+class SummaryViewSet(UserOwnedViewSet, viewsets.ViewSet):
+    permission_classes = [IsOwnerOrAdmin]
+    queryset = Task.objects.all()
+
     def list(self, request):
-        summary_data = SummarySerializer(instance={}).data
+        summary_data = SummarySerializer(instance={"user": request.user}).data
         return Response(summary_data)

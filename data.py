@@ -47,3 +47,29 @@ from data_app.models import Contact, Category, Task, Subtask
 # task4.contacts.set([6, 2, 3])
 # task5.contacts.set([1, 3])
 # task6.contacts.set([4, 5, 6])
+
+
+# {
+#    "user": 1,
+#    "title": "OOOOOOOOOOO",
+#    "description": "Beschreibung",
+#    "category": 1,
+#    "contacts": [1],
+#    "due_date": "2025-04-10",
+#    "priority": "medium",
+#    "process_step": "todo",
+#    "subtasks": [
+#        {
+#            "name": "Ersten Entwurf erstellen",
+#            "status": false
+#        },
+#        {
+#            "name": "Finale Version abschicken",
+#            "status": false
+#        },
+#        {
+#            "name": "testttttt",
+#            "status": false
+#        }
+#    ]
+# }
