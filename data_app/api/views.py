@@ -17,6 +17,7 @@ from user_auth_app.api.permissions import IsOwnerOrAdmin, IsSubtaskOwnerOrAdmin
 # Create your views here.
 
 
+################GENERAL###########################
 class UserOwnedViewSet(viewsets.GenericViewSet):
     """
     Basisklasse für ViewSets, bei denen nur user-spezifische Daten angezeigt werden dürfen.
@@ -29,30 +30,21 @@ class UserOwnedViewSet(viewsets.GenericViewSet):
         serializer.save(user=self.request.user)
 
 
-# kann alles
+################GENERAL###########################
+
+
 class ContactViewSet(UserOwnedViewSet, viewsets.ModelViewSet):
     permission_classes = [IsOwnerOrAdmin]
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
 
 
-# nur lesen + hinfügen
 class CategoryViewSet(
     UserOwnedViewSet, mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet
 ):
     permission_classes = [IsOwnerOrAdmin]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-
-
-class TaskViewSet(UserOwnedViewSet, viewsets.ModelViewSet):
-    permission_classes = [IsOwnerOrAdmin]
-    queryset = Task.objects.all()
-
-    def get_serializer_class(self):
-        if self.action in ["list", "retrieve"]:
-            return TaskReadSerializer
-        return TaskWriteSerializer
 
 
 class SubtaskViewSet(viewsets.ModelViewSet):
@@ -69,7 +61,16 @@ class SubtaskViewSet(viewsets.ModelViewSet):
         return SubTaskWriteSerializer
 
 
-# nur lesen
+class TaskViewSet(UserOwnedViewSet, viewsets.ModelViewSet):
+    permission_classes = [IsOwnerOrAdmin]
+    queryset = Task.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ["list", "retrieve"]:
+            return TaskReadSerializer
+        return TaskWriteSerializer
+
+
 class SummaryViewSet(UserOwnedViewSet, viewsets.ViewSet):
     permission_classes = [IsOwnerOrAdmin]
     queryset = Task.objects.all()

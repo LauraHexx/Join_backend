@@ -27,10 +27,33 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 ######################SUBTASKS######################
-class SubtaskSerializer(serializers.ModelSerializer):
+
+
+class SubTaskReadSerializer(serializers.ModelSerializer):
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), source="task.user", write_only=False
+    )
+
+    task_id = serializers.PrimaryKeyRelatedField(
+        queryset=Task.objects.all(), source="task.user", write_only=False
+    )
+
     class Meta:
         model = Subtask
-        fields = ["id", "name", "status"]
+        fields = ["user_id", "task_id", "id", "name", "status"]
+
+
+class SubTaskWriteSerializer(serializers.ModelSerializer):
+    task = serializers.PrimaryKeyRelatedField(queryset=Task.objects.none())
+
+    class Meta:
+        model = Subtask
+        fields = ["task", "name", "status"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        user = self.context["request"].user
+        self.fields["task"].queryset = Task.objects.filter(user=user)
 
 
 #######################SUMMARY######################
@@ -111,10 +134,16 @@ class TaskContactSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "email", "phone", "color"]
 
 
+class TaskSubtaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subtask
+        fields = ["id", "name", "status"]
+
+
 class TaskReadSerializer(serializers.ModelSerializer):
     category = TaskCategorySerializer(read_only=True)
     contacts = TaskContactSerializer(many=True, read_only=True)
-    subtasks = SubtaskSerializer(many=True, read_only=True)
+    subtasks = TaskSubtaskSerializer(many=True, read_only=True)
 
     class Meta:
         model = Task
@@ -132,80 +161,8 @@ class TaskReadSerializer(serializers.ModelSerializer):
         ]
 
 
-class FUNKTIONIERT(serializers.ModelSerializer):
-    subtasks = SubtaskSerializer(many=True, required=False)
-    contacts = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=Contact.objects.all()
-    )
-
-    class Meta:
-        model = Task
-        fields = [
-            "id",
-            "user",
-            "title",
-            "description",
-            "category",
-            "contacts",
-            "due_date",
-            "priority",
-            "process_step",
-            "subtasks",
-        ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        user = self.context["request"].user
-
-        # Filter auf user-eigene Kontakte & Kategorien setzen
-        self.fields["contacts"].queryset = Contact.objects.filter(user=user)
-        self.fields["category"].queryset = Category.objects.filter(user=user)
-
-    def validate_contacts(self, contacts):
-        user = self.context["request"].user
-        allowed_contacts = Contact.objects.filter(user=user)
-
-        for contact in contacts:
-            if contact not in allowed_contacts:
-                raise serializers.ValidationError(
-                    f"Contact {contact.id} is not allowed for this user."
-                )
-
-        return contacts
-
-    def create(self, validated_data):
-        subtasks_data = validated_data.pop("subtasks", [])
-        contacts = validated_data.pop("contacts", [])
-
-        task = Task.objects.create(**validated_data)
-        task.contacts.set(contacts)
-
-        for subtask_data in subtasks_data:
-            Subtask.objects.create(task=task, **subtask_data)
-
-        return task
-
-    def update(self, instance, validated_data):
-        subtasks_data = validated_data.pop("subtasks", None)
-        contacts = validated_data.pop("contacts", None)
-
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        if contacts is not None:
-            instance.contacts.set(contacts)
-
-        if subtasks_data is not None:
-            instance.subtasks.all().delete()
-            for subtask_data in subtasks_data:
-                Subtask.objects.create(task=instance, **subtask_data)
-
-        return instance
-
-
 class TaskWriteSerializer(serializers.ModelSerializer):
-    subtasks = SubtaskSerializer(many=True, required=False)
+    subtasks = TaskSubtaskSerializer(many=True, required=False)
     contacts = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Contact.objects.all()
     )
@@ -281,30 +238,3 @@ class TaskWriteSerializer(serializers.ModelSerializer):
         self.manage_contacts_and_subtasks(instance, contacts, subtasks_data)
 
         return instance
-
-
-class SubTaskReadSerializer(serializers.ModelSerializer):
-    user_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), source="task.user", write_only=False
-    )
-
-    task_id = serializers.PrimaryKeyRelatedField(
-        queryset=Task.objects.all(), source="task.user", write_only=False
-    )
-
-    class Meta:
-        model = Subtask
-        fields = ["user_id", "task_id", "id", "name", "status"]
-
-
-class SubTaskWriteSerializer(serializers.ModelSerializer):
-    task = serializers.PrimaryKeyRelatedField(queryset=Task.objects.none())
-
-    class Meta:
-        model = Subtask
-        fields = ["task", "name", "status"]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        user = self.context["request"].user
-        self.fields["task"].queryset = Task.objects.filter(user=user)

@@ -18,7 +18,7 @@ class Contact(models.Model):
 class Category(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, unique=True)
-    color = models.CharField(max_length=20)  # Auswahl aus festen Farben
+    color = models.CharField(max_length=20)
 
 
 class Task(models.Model):
