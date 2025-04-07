@@ -211,7 +211,6 @@ class TaskWriteSerializer(serializers.ModelSerializer):
             task.contacts.set(contacts_data)
 
         if subtasks_data is not None:
-            task.subtasks.all().delete()  # Löscht alte Subtasks
             Subtask.objects.bulk_create(
                 [Subtask(task=task, **subtask_data) for subtask_data in subtasks_data]
             )
