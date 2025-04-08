@@ -40,8 +40,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "kanban_project",
     "users_auth_app",
-    "boards_app",
     "contacts_app",
+    "tasks_app",
 ]
 
 MIDDLEWARE = [

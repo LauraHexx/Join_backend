@@ -9,7 +9,7 @@ from django.db import models
 
 
 from users_auth_app.models import User
-from contacts_app.utils import generate_random_color, validate_hex_color
+from utils import generate_random_color, validate_hex_color
 
 
 class Contact(models.Model):
