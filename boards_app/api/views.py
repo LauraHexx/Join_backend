@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
-from board_app.models import Board
-from board_app.api.serializers import BoardSerializer
+from boards_app.models import Board
+from boards_app.api.serializers import BoardSerializer
 
 
 # Create your views here.

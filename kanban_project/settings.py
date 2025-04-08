@@ -38,8 +38,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "kanban_project",  # Your kanban app
-    "board_app",  # Your kanban app
+    "kanban_project",
+    "users_auth_app",
+    "boards_app",
+    "contacts_app",
 ]
 
 MIDDLEWARE = [
