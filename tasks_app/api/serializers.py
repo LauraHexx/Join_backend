@@ -6,7 +6,7 @@ from contacts_app.api.serializers import ContactSerializer
 
 
 class SubtaskSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(required=False)
+    id = serializers.IntegerField(required=True)
 
     class Meta:
         model = Subtask
@@ -25,7 +25,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     def validate_color(self, value):
         if not value.startswith("#") or len(value) != 7:
-            raise serializers.ValidationError("Ungültiger Farbcode")
+            raise serializers.ValidationError("Invalid color code")
         return value
 
 
@@ -43,8 +43,18 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
+
         subtasks_data = validated_data.pop("subtasks", None)
         contact_ids = validated_data.pop("contact_ids", None)
+        category_id = validated_data.pop("category_id", None)
+
+        try:
+            category = Category.objects.get(id=category_id)
+            validated_data["category"] = category
+        except Category.DoesNotExist:
+            raise serializers.ValidationError(
+                {"category_id": f"Category with ID {category_id} does not exist."}
+            )
 
         task = Task.objects.create(**validated_data)
 
@@ -54,6 +64,7 @@ class TaskSerializer(serializers.ModelSerializer):
         if subtasks_data:
             for subtask_data in subtasks_data:
                 Subtask.objects.create(task=task, **subtask_data)
+
         return task
 
     def update(self, instance, validated_data):
@@ -67,7 +78,7 @@ class TaskSerializer(serializers.ModelSerializer):
             except Category.DoesNotExist:
                 raise serializers.ValidationError(
                     {
-                        "category_error": f"Category mit ID {category_id} existiert nicht."
+                        "category_error": f"Category with ID {category_id} does not exist."
                     }
                 )
 
@@ -100,7 +111,7 @@ class TaskSerializer(serializers.ModelSerializer):
                 except Subtask.DoesNotExist:
                     raise serializers.ValidationError(
                         {
-                            "subtask_error": f"Subtask mit ID {subtask_id} existiert nicht."
+                            "subtask_error": f"Subtask with ID {subtask_id} does not exist."
                         }
                     )
             else:
