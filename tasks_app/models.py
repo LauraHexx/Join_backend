@@ -11,6 +11,13 @@ class Task(models.Model):
         ("low", "Low"),
     ]
 
+    PROCESS_STEP_CHOICES = [
+        ("todo", "To Do"),
+        ("inProgress", "In Progress"),
+        ("awaitingFeedback", "Awaiting Feedback"),
+        ("done", "Done"),
+    ]
+
     title = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
     due_date = models.DateField()
@@ -20,6 +27,12 @@ class Task(models.Model):
     contacts = models.ManyToManyField(Contact, related_name="tasks", blank=True)
     category = models.ForeignKey(
         "Category", on_delete=models.CASCADE, related_name="tasks"
+    )
+
+    process_step = models.CharField(
+        max_length=20,
+        choices=PROCESS_STEP_CHOICES,
+        default="todo",
     )
 
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tasks")

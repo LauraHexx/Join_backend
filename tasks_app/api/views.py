@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets
 
 
 from utils import generate_random_color
@@ -11,6 +12,7 @@ from tasks_app.api.serializers import (
     TaskSerializer,
     SubtaskSerializer,
     CategorySerializer,
+    SummarySerializer,
 )
 
 
@@ -62,3 +64,11 @@ class CategoryViewSet(ModelViewSet):
             color = generate_random_color()
 
         serializer.save(created_by=self.request.user)
+
+
+class SummaryViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        serializer = SummarySerializer(instance={}, context={"request": request})
+        return Response(serializer.data)

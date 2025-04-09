@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
+from django.utils.timezone import now
 
 from ..models import Task, Subtask, Category
 from contacts_app.models import Contact
@@ -127,3 +128,44 @@ class TaskSerializer(serializers.ModelSerializer):
                     Subtask.objects.create(task=instance, **subtask_data)
 
         return instance
+
+
+class SummarySerializer(serializers.Serializer):
+    tasks_in_board = serializers.SerializerMethodField()
+    tasks_in_progress = serializers.SerializerMethodField()
+    tasks_awaiting_feedback = serializers.SerializerMethodField()
+    urgent_tasks = serializers.SerializerMethodField()
+    upcoming_deadline = serializers.SerializerMethodField()
+    todo_tasks = serializers.SerializerMethodField()
+    done_tasks = serializers.SerializerMethodField()
+
+    def get_filtered_tasks(self):
+        user = self.context["request"].user
+        return Task.objects.filter(created_by=user)
+
+    def get_tasks_in_board(self, obj):
+        return self.get_filtered_tasks().count()
+
+    def get_tasks_in_progress(self, obj):
+        return self.get_filtered_tasks().filter(process_step="inProgress").count()
+
+    def get_tasks_awaiting_feedback(self, obj):
+        return self.get_filtered_tasks().filter(process_step="awaitingFeedback").count()
+
+    def get_urgent_tasks(self, obj):
+        return self.get_filtered_tasks().filter(priority="urgent").count()
+
+    def get_todo_tasks(self, obj):
+        return self.get_filtered_tasks().filter(process_step="todo").count()
+
+    def get_done_tasks(self, obj):
+        return self.get_filtered_tasks().filter(process_step="done").count()
+
+    def get_upcoming_deadline(self, obj):
+        task = (
+            self.get_filtered_tasks()
+            .exclude(due_date__lt=now().date())
+            .order_by("due_date")
+            .first()
+        )
+        return task.due_date if task else "No deadline"
