@@ -1,19 +1,25 @@
 from rest_framework import serializers
-from ..models import Task, Subtask, Category
+from rest_framework.generics import get_object_or_404
 
+from ..models import Task, Subtask, Category
 from contacts_app.models import Contact
 from contacts_app.api.serializers import ContactSerializer
 
 
 class SubtaskSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(required=True)
+    task_id = serializers.PrimaryKeyRelatedField(
+        queryset=Task.objects.all(), source="task", write_only=True, required=True
+    )
+    task = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Subtask
-        fields = ["id", "name", "status"]
+        fields = ["id", "name", "status", "task", "task_id"]
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    created_by = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = Category
         fields = [
@@ -29,41 +35,61 @@ class CategorySerializer(serializers.ModelSerializer):
         return value
 
 
+class TaskSubtaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subtask
+        fields = ["name", "status"]
+
+
 class TaskSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     category_id = serializers.IntegerField(write_only=True)
-    subtasks = SubtaskSerializer(many=True)
+    subtasks = TaskSubtaskSerializer(many=True)
     contacts = ContactSerializer(many=True, read_only=True)
     contact_ids = serializers.PrimaryKeyRelatedField(
         queryset=Contact.objects.all(), many=True, write_only=True
     )
+    created_by = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Task
         fields = "__all__"
 
-    def create(self, validated_data):
-
-        subtasks_data = validated_data.pop("subtasks", None)
-        contact_ids = validated_data.pop("contact_ids", None)
-        category_id = validated_data.pop("category_id", None)
-
-        try:
-            category = Category.objects.get(id=category_id)
-            validated_data["category"] = category
-        except Category.DoesNotExist:
+    def validate_category_id(self, value):
+        user = self.context["request"].user
+        if not Category.objects.filter(id=value, created_by=user).exists():
             raise serializers.ValidationError(
-                {"category_id": f"Category with ID {category_id} does not exist."}
+                f"You do not have permission to use category with ID {value}."
+            )
+        return value
+
+    def validate_contact_ids(self, value):
+        user = self.context["request"].user
+        invalid_contacts = []
+
+        for contact in value:
+            if contact.created_by != user:
+                invalid_contacts.append(contact.id)
+
+        if invalid_contacts:
+            raise serializers.ValidationError(
+                f"You do not have permission to use the following contact IDs: {', '.join(map(str, invalid_contacts))}."
             )
 
-        task = Task.objects.create(**validated_data)
+        return value
 
-        if contact_ids is not None:
-            task.contacts.set(contact_ids)
+    def create(self, validated_data):
+        subtasks_data = validated_data.pop("subtasks", [])
+        contact_ids = validated_data.pop("contact_ids", [])
+        category_id = validated_data.pop("category_id")
+        user = self.context["request"].user
 
-        if subtasks_data:
-            for subtask_data in subtasks_data:
-                Subtask.objects.create(task=task, **subtask_data)
+        category = get_object_or_404(Category, id=category_id, created_by=user)
+        task = Task.objects.create(**validated_data, category=category, created_by=user)
+        task.contacts.set(contact_ids)
+
+        for subtask_data in subtasks_data:
+            Subtask.objects.create(task=task, **subtask_data)
 
         return task
 
@@ -71,50 +97,33 @@ class TaskSerializer(serializers.ModelSerializer):
         subtasks_data = validated_data.pop("subtasks", None)
         category_id = validated_data.pop("category_id", None)
         contact_ids = validated_data.pop("contact_ids", None)
+        user = self.context["request"].user
 
-        if category_id:
-            try:
-                instance.category = Category.objects.get(id=category_id)
-            except Category.DoesNotExist:
-                raise serializers.ValidationError(
-                    {
-                        "category_error": f"Category with ID {category_id} does not exist."
-                    }
-                )
+        if category_id is not None:
+            instance.category = get_object_or_404(
+                Category, id=category_id, created_by=user
+            )
+
+        if contact_ids is not None:
+            instance.contacts.set(contact_ids)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
-        if contact_ids is not None:
-            instance.contacts.set(contact_ids)
-
         if subtasks_data is not None:
-            updated_subtask_ids = [
-                subtask_data.get("id")
-                for subtask_data in subtasks_data
-                if subtask_data.get("id")
-            ]
+            existing_ids = [s.get("id") for s in subtasks_data if s.get("id")]
 
-        for subtask in instance.subtasks.all():
-            if subtask.id not in updated_subtask_ids:
-                subtask.delete()
+            instance.subtasks.exclude(id__in=existing_ids).delete()
 
-        for subtask_data in subtasks_data:
-            subtask_id = subtask_data.get("id")
-            if subtask_id:
-                try:
-                    subtask = Subtask.objects.get(id=subtask_id, task=instance)
+            for subtask_data in subtasks_data:
+                subtask_id = subtask_data.get("id")
+                if subtask_id:
+                    subtask = get_object_or_404(Subtask, id=subtask_id, task=instance)
                     for key, value in subtask_data.items():
                         setattr(subtask, key, value)
                     subtask.save()
-                except Subtask.DoesNotExist:
-                    raise serializers.ValidationError(
-                        {
-                            "subtask_error": f"Subtask with ID {subtask_id} does not exist."
-                        }
-                    )
-            else:
-                Subtask.objects.create(task=instance, **subtask_data)
+                else:
+                    Subtask.objects.create(task=instance, **subtask_data)
 
-        return super().update(instance, validated_data)
+        return instance
