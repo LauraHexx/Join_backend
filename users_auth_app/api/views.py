@@ -1,5 +1,5 @@
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -7,12 +7,12 @@ from rest_framework import generics
 
 from django.contrib.auth.models import User
 from .serializers import UserProfileSerializer, RegistrationSerializer
-from dummy_data_app.api.signals import create_dummy_data
+from dummy_data_app.api.utils import create_dummy_data
 from .utils import generate_random_password, get_next_guest_credentials
 
 
 class UserProfileList(generics.ListCreateAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
     queryset = User.objects.all()
 
     def get_serializer_class(self):
@@ -25,7 +25,7 @@ class UserProfileList(generics.ListCreateAPIView):
 
 
 class UserProfileDetail(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
     queryset = User.objects.all()
     serializer_class = UserProfileSerializer
 
@@ -123,3 +123,17 @@ class LoginView(ObtainAuthToken):
             "email": user.email,
             "id": user.id,
         }
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """
+        Logs out the user by deleting the auth token.
+        """
+        try:
+            request.user.auth_token.delete()
+            return Response({"message": "Successfully logged out."}, status=200)
+        except (AttributeError, Token.DoesNotExist):
+            return Response({"error": "No active session found."}, status=400)
