@@ -1,10 +1,6 @@
 from django.db import IntegrityError
-from tasks_app.models import Contact, Category, Task, Subtask
-from contacts_app.models import Contact as ContactModel
-from dummy_data_app.api.data import DUMMY_CONTACTS, DUMMY_CATEGORIES, DUMMY_TASKS
-from django.db import IntegrityError
-from tasks_app.models import Contact, Category, Task, Subtask
-from contacts_app.models import Contact as ContactModel
+from tasks_app.models import Category, Task, Subtask
+from contacts_app.models import Contact
 from dummy_data_app.api.data import DUMMY_CONTACTS, DUMMY_CATEGORIES, DUMMY_TASKS
 
 
