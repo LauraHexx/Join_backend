@@ -32,6 +32,9 @@ class SubtaskViewSet(ModelViewSet):
         return Subtask.objects.filter(task__created_by=self.request.user)
 
     def perform_create(self, serializer):
+        """
+        Ensures the user is allowed to add subtasks to the task and saves the subtask.
+        """
         task = serializer.validated_data.get("task")
         if task.created_by != self.request.user:
             raise serializers.ValidationError(
@@ -40,6 +43,9 @@ class SubtaskViewSet(ModelViewSet):
         serializer.save()
 
     def perform_update(self, serializer):
+        """
+        Ensures the user is allowed to assign a subtask to the specified task and saves the subtask.
+        """
         task = serializer.validated_data.get("task", serializer.instance.task)
         if task.created_by != self.request.user:
             raise serializers.ValidationError(
@@ -58,6 +64,9 @@ class CategoryViewSet(ModelViewSet):
         return Category.objects.filter(created_by=self.request.user)
 
     def perform_create(self, serializer):
+        """
+        Generates a random color if not provided and saves the object with the current user as the creator.
+        """
         color = serializer.validated_data.get("color", None)
 
         if not color:

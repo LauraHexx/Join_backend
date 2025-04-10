@@ -39,6 +39,9 @@ class Contact(models.Model):
         unique_together = ("email", "created_by")
 
     def save(self, *args, **kwargs):
+        """
+        Splits the `name` field into `first_name` and `last_name` before saving the object.
+        """
         name_parts = self.name.strip().split()
         self.first_name = name_parts[0] if name_parts else ""
         self.last_name = name_parts[1] if len(name_parts) > 1 else ""

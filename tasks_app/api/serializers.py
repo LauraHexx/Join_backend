@@ -31,6 +31,9 @@ class CategorySerializer(serializers.ModelSerializer):
         ]
 
     def validate_color(self, value):
+        """
+        Validates if the color code is a valid hex code.
+        """
         if not value.startswith("#") or len(value) != 7:
             raise serializers.ValidationError("Invalid color code")
         return value
@@ -57,6 +60,9 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def validate_category_id(self, value):
+        """
+        checks if the category ID belongs to the current user.
+        """
         user = self.context["request"].user
         if not Category.objects.filter(id=value, created_by=user).exists():
             raise serializers.ValidationError(
@@ -65,6 +71,9 @@ class TaskSerializer(serializers.ModelSerializer):
         return value
 
     def validate_contact_ids(self, value):
+        """
+        Checks if the contact IDs belong to the current user.
+        """
         user = self.context["request"].user
         invalid_contacts = []
 
@@ -80,6 +89,9 @@ class TaskSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
+        """
+        Creates a new task with associated subtasks and contacts.
+        """
         subtasks_data = validated_data.pop("subtasks", [])
         contact_ids = validated_data.pop("contact_ids", [])
         category_id = validated_data.pop("category_id")
@@ -95,6 +107,9 @@ class TaskSerializer(serializers.ModelSerializer):
         return task
 
     def update(self, instance, validated_data):
+        """
+        Updates an existing task with new values for its fields and subtasks.
+        """
         subtasks_data = validated_data.pop("subtasks", None)
         category_id = validated_data.pop("category_id", None)
         contact_ids = validated_data.pop("contact_ids", None)
@@ -140,28 +155,52 @@ class SummarySerializer(serializers.Serializer):
     done_tasks = serializers.SerializerMethodField()
 
     def get_filtered_tasks(self):
+        """
+        Returns tasks created by the current user.
+        """
         user = self.context["request"].user
         return Task.objects.filter(created_by=user)
 
     def get_tasks_in_board(self, obj):
+        """
+        Returns the total number of tasks for the current user.
+        """
         return self.get_filtered_tasks().count()
 
     def get_tasks_in_progress(self, obj):
+        """
+        Returns the count of tasks with the status "inProgress" for the current user.
+        """
         return self.get_filtered_tasks().filter(process_step="inProgress").count()
 
     def get_tasks_awaiting_feedback(self, obj):
+        """
+        Returns the count of tasks with the status "awaitingFeedback" for the current user.
+        """
         return self.get_filtered_tasks().filter(process_step="awaitingFeedback").count()
 
     def get_urgent_tasks(self, obj):
+        """
+        Returns the count of urgent tasks for the current user.
+        """
         return self.get_filtered_tasks().filter(priority="urgent").count()
 
     def get_todo_tasks(self, obj):
+        """
+        Returns the count of tasks with the status "todo" for the current user.
+        """
         return self.get_filtered_tasks().filter(process_step="todo").count()
 
     def get_done_tasks(self, obj):
+        """
+        Returns the count of tasks with the status "done" for the current user.
+        """
         return self.get_filtered_tasks().filter(process_step="done").count()
 
     def get_upcoming_deadline(self, obj):
+        """
+        Returns the upcoming deadline for the current user or "No deadline" if none exists.
+        """
         task = (
             self.get_filtered_tasks()
             .exclude(due_date__lt=now().date())
