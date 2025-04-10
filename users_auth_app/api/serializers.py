@@ -40,4 +40,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         )
         account.set_password(pw)
         account.save()
+
+        UserProfile.objects.create(user=account)
+
         return account
