@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from rest_framework import generics
 
 from .serializers import UserProfileSerializer, RegistrationSerializer
+from dummy_data_app.api.signals import create_dummy_data
 
 
 class UserProfileList(generics.ListCreateAPIView):
@@ -42,6 +43,7 @@ class RegistrationView(APIView):
                 "email": saved_account.email,
                 "id": saved_account.id,
             }
+            create_dummy_data(saved_account)
         else:
             data = serializer.errors
         return Response(data)

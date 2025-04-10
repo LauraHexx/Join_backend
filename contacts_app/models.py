@@ -16,7 +16,7 @@ class Contact(models.Model):
     name = models.CharField(max_length=255)
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
-    email = models.EmailField(unique=True)
+    email = models.EmailField()
     phone_number = models.CharField(
         max_length=15,
         validators=[
@@ -35,12 +35,12 @@ class Contact(models.Model):
         User, on_delete=models.CASCADE, related_name="contacts"
     )
 
+    class Meta:
+        unique_together = ("email", "created_by")
+
     def save(self, *args, **kwargs):
         name_parts = self.name.strip().split()
         self.first_name = name_parts[0] if name_parts else ""
         self.last_name = name_parts[1] if len(name_parts) > 1 else ""
 
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.name

@@ -45,10 +45,13 @@ class Subtask(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=30, unique=True)
+    name = models.CharField(max_length=30)
     color = models.CharField(
         max_length=7, default=generate_random_color, validators=[validate_hex_color]
     )
     created_by = models.ForeignKey(
         User, on_delete=models.CASCADE, null=True, blank=True
     )
+
+    class Meta:
+        unique_together = ("name", "created_by")

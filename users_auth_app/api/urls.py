@@ -6,6 +6,6 @@ urlpatterns = [
     path("users/", UserProfileList.as_view(), name="userprofile-list"),
     path("users/<int:pk>/", UserProfileDetail.as_view(), name="userprofile-detail"),
     path("registration/", RegistrationView.as_view(), name="registration"),
-    path("login/", LoginView.as_view(), name="login"),
-    # path("login/", obtain_auth_token, name="login"),
+    # path("login/", LoginView.as_view(), name="login"),
+    path("login/", obtain_auth_token, name="login"),
 ]
