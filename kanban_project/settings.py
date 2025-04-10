@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "users_auth_app",
     "contacts_app",
     "tasks_app",
+    "dummy_data_app",
 ]
 
 MIDDLEWARE = [

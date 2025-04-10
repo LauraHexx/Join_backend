@@ -14,7 +14,11 @@ from .serializers import UserProfileSerializer, RegistrationSerializer
 class UserProfileList(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
     queryset = User.objects.all()
-    serializer_class = UserProfileSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return RegistrationSerializer
+        return UserProfileSerializer
 
 
 class UserProfileDetail(generics.RetrieveUpdateDestroyAPIView):
