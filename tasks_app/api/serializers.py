@@ -147,12 +147,12 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class SummarySerializer(serializers.Serializer):
     tasks_in_board = serializers.SerializerMethodField()
+    tasks_todo = serializers.SerializerMethodField()
     tasks_in_progress = serializers.SerializerMethodField()
     tasks_awaiting_feedback = serializers.SerializerMethodField()
-    urgent_tasks = serializers.SerializerMethodField()
+    tasks_urgent = serializers.SerializerMethodField()
     upcoming_deadline = serializers.SerializerMethodField()
-    todo_tasks = serializers.SerializerMethodField()
-    done_tasks = serializers.SerializerMethodField()
+    tasks_done = serializers.SerializerMethodField()
 
     def get_filtered_tasks(self):
         """
@@ -167,6 +167,12 @@ class SummarySerializer(serializers.Serializer):
         """
         return self.get_filtered_tasks().count()
 
+    def get_tasks_todo(self, obj):
+        """
+        Returns the count of tasks with the status "todo" for the current user.
+        """
+        return self.get_filtered_tasks().filter(process_step="todo").count()
+
     def get_tasks_in_progress(self, obj):
         """
         Returns the count of tasks with the status "inProgress" for the current user.
@@ -179,19 +185,13 @@ class SummarySerializer(serializers.Serializer):
         """
         return self.get_filtered_tasks().filter(process_step="awaitingFeedback").count()
 
-    def get_urgent_tasks(self, obj):
+    def get_tasks_urgent(self, obj):
         """
         Returns the count of urgent tasks for the current user.
         """
         return self.get_filtered_tasks().filter(priority="urgent").count()
 
-    def get_todo_tasks(self, obj):
-        """
-        Returns the count of tasks with the status "todo" for the current user.
-        """
-        return self.get_filtered_tasks().filter(process_step="todo").count()
-
-    def get_done_tasks(self, obj):
+    def get_tasks_done(self, obj):
         """
         Returns the count of tasks with the status "done" for the current user.
         """
