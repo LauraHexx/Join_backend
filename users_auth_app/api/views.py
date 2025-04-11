@@ -42,10 +42,9 @@ class RegistrationView(APIView):
         if serializer.is_valid():
             saved_account = serializer.save()
             data = self.create_response_data(saved_account)
-            create_dummy_data(saved_account)
-        else:
-            data = serializer.errors
-        return Response(data)
+            return Response(data, status=201)
+
+        return Response(serializer.errors, status=400)
 
     def create_response_data(self, saved_account):
         """

@@ -22,23 +22,37 @@ class RegistrationSerializer(serializers.ModelSerializer):
         extra_kwargs = {"password": {"write_only": True}}
 
     def validate_email(self, value):
+        """
+        Validates that the email is not already registered.
+        """
         if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError(
-                "Diese E-Mail-Adresse wird bereits verwendet."
-            )
+            raise serializers.ValidationError("EMAIL_ALREADY_REGISTERED")
+        return value
+
+    def validate_username(self, value):
+        """
+        Validates that the username is not already taken.
+        """
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("USERNAME_ALREADY_EXISTS")
         return value
 
     def save(self):
-        pw = self.validated_data["password"]
-        repeated_pw = self.validated_data["repeated_password"]
+        """
+        Validates matching passwords, creates the user and associated profile.
+        """
+        password = self.validated_data["password"]
+        repeated_password = self.validated_data["repeated_password"]
 
-        if pw != repeated_pw:
-            raise serializers.ValidationError({"error": "passwords don't match"})
+        if password != repeated_password:
+            raise serializers.ValidationError("PASSWORDS_DO_NOT_MATCH")
 
-        account = User(
+        user = User(
             email=self.validated_data["email"], username=self.validated_data["username"]
         )
-        account.set_password(pw)
-        account.save()
-        UserProfile.objects.create(user=account)
-        return account
+        user.set_password(password)
+        user.save()
+
+        UserProfile.objects.create(user=user)
+
+        return user
