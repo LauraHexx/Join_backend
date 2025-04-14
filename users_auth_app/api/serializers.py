@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from users_auth_app.models import UserProfile
 from django.contrib.auth.models import User
-from rest_framework.validators import UniqueValidator
 from contacts_app.models import Contact
 
 
