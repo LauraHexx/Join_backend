@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from users_auth_app.models import UserProfile
 from django.contrib.auth.models import User
+from rest_framework.validators import UniqueValidator
+from contacts_app.models import Contact
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -29,14 +31,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("EMAIL_ALREADY_REGISTERED")
         return value
 
-    def validate_username(self, value):
-        """
-        Validates that the username is not already taken.
-        """
-        if User.objects.filter(username=value).exists():
-            raise serializers.ValidationError("USERNAME_ALREADY_EXISTS")
-        return value
-
     def save(self):
         """
         Validates matching passwords, creates the user and associated profile.
@@ -54,5 +48,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         user.save()
 
         UserProfile.objects.create(user=user)
+
+        Contact.objects.create(name=user.username, email=user.email, created_by=user)
 
         return user
