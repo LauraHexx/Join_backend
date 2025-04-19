@@ -6,7 +6,7 @@ DUMMY_CONTACTS = [
         "last_name": "Mustermann",
         "email": "max.mustermann@test.de",
         "phone_number": "0123456789",
-        "color": "#9327FF",
+        "color": "#9327ff",
     },
     {
         "id": 2,
@@ -15,7 +15,7 @@ DUMMY_CONTACTS = [
         "last_name": "Musterfrau",
         "email": "erika.musterfrau@test.de",
         "phone_number": "0123456788",
-        "color": "#29ABE2",
+        "color": "#29abe2",
     },
     {
         "id": 3,
@@ -24,7 +24,7 @@ DUMMY_CONTACTS = [
         "last_name": "Doe",
         "email": "john.doe@test.de",
         "phone_number": "0123456799",
-        "color": "#02CF2F",
+        "color": "#02cf2f",
     },
     {
         "id": 4,
@@ -33,7 +33,7 @@ DUMMY_CONTACTS = [
         "last_name": "Schneider",
         "email": "sophie.schneider@test.de",
         "phone_number": "0123456444",
-        "color": "#1ABC9C",
+        "color": "#1abc9c",
     },
     {
         "id": 5,
@@ -42,7 +42,7 @@ DUMMY_CONTACTS = [
         "last_name": "Krause",
         "email": "ben.krause@test.de",
         "phone_number": "0123456555",
-        "color": "#E67E22",
+        "color": "#e67e22",
     },
     {
         "id": 6,
@@ -51,17 +51,18 @@ DUMMY_CONTACTS = [
         "last_name": "Müller",
         "email": "anna.mueller@test.de",
         "phone_number": "0123456777",
-        "color": "#F39C12",
+        "color": "#f39c12",
     },
 ]
 
-
 DUMMY_CATEGORIES = [
-    {"id": 1, "name": "Developing", "color": "#0000FF"},
-    {"id": 2, "name": "HR", "color": "#FF0000"},
-    {"id": 3, "name": "Marketing", "color": "#FFA500"},
+    {"id": 1, "name": "Developing", "color": "#0000ff"},
+    {"id": 2, "name": "HR", "color": "#ff0000"},
+    {"id": 3, "name": "Marketing", "color": "#ffa500"},
     {"id": 4, "name": "Sales", "color": "#008000"},
 ]
+
+
 
 
 DUMMY_TASKS = [
