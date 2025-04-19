@@ -2,6 +2,7 @@ from rest_framework import serializers
 from users_auth_app.models import UserProfile
 from django.contrib.auth.models import User
 from contacts_app.models import Contact
+from django.core.validators import RegexValidator
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -15,6 +16,18 @@ class RegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(max_length=128, min_length=8, write_only=True)
     repeated_password = serializers.CharField(
         max_length=128, min_length=8, write_only=True
+    )
+    username = serializers.CharField(
+        max_length=150,
+        validators=[
+            RegexValidator(
+                regex=r"^[\w.@+\- ]+$",  # Leerzeichen ist erlaubt!
+                message=(
+                    "Enter a valid username. This value may contain only letters, numbers, spaces "
+                    "and @/./+/-/_ characters."
+                ),
+            )
+        ],
     )
 
     class Meta:

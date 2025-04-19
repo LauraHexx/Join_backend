@@ -17,6 +17,9 @@ class ContactViewSet(ModelViewSet):
     def get_queryset(self):
         return Contact.objects.filter(created_by=self.request.user)
 
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
     def perform_update(self, serializer):
         """
         Updates the user's email if the contact belongs to them and the new email is not already used.
