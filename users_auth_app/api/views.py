@@ -12,7 +12,7 @@ from .utils import generate_random_password, get_next_guest_credentials
 
 
 class UserProfileList(generics.ListCreateAPIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
     queryset = User.objects.all()
 
     def get_serializer_class(self):
@@ -25,7 +25,7 @@ class UserProfileList(generics.ListCreateAPIView):
 
 
 class UserProfileDetail(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
     queryset = User.objects.all()
     serializer_class = UserProfileSerializer
 
@@ -60,10 +60,48 @@ class RegistrationView(APIView):
         }
 
 
+
+class LoginView(ObtainAuthToken):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        """
+        Authenticates the user and returns an authentication token.
+        """
+        email = request.data.get("email")
+        password = request.data.get("password")
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"error": "User with this email does not exist."}, status=400)
+
+        if not user.check_password(password):
+            return Response({"error": "Incorrect password."}, status=400)
+
+        data = self.create_response_data(user)
+        return Response(data)
+
+    def create_response_data(self, user):
+        """
+        Creates the response data including the token and basic user info.
+        """
+        token, created = Token.objects.get_or_create(user=user)
+        return {
+            "token": token.key,
+            "username": user.username,
+            "email": user.email,
+            "id": user.id,
+        }
+
+
 class GuestLoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Creates and returns a guest user with dummy data and auth token.
+        """
         guest_password = generate_random_password()
         username, email = get_next_guest_credentials()
 
@@ -86,6 +124,9 @@ class GuestLoginView(APIView):
         return Response(data)
 
     def create_response_data(self, saved_account):
+        """
+        Builds response data with token and guest user info.
+        """
         token, created = Token.objects.get_or_create(user=saved_account)
         return {
             "token": token.key,
@@ -94,35 +135,6 @@ class GuestLoginView(APIView):
             "id": saved_account.id,
         }
 
-
-class LoginView(ObtainAuthToken):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        """
-        Authenticates the user and returns an authentication token.
-        """
-        serializer = self.serializer_class(data=request.data)
-
-        if serializer.is_valid():
-            user = serializer.validated_data["user"]
-            data = self.create_response_data(user)
-        else:
-            data = serializer.errors
-
-        return Response(data)
-
-    def create_response_data(self, user):
-        """
-        Creates the response data including the token and basic user info.
-        """
-        token, created = Token.objects.get_or_create(user=user)
-        return {
-            "token": token.key,
-            "username": user.username,
-            "email": user.email,
-            "id": user.id,
-        }
 
 
 class LogoutView(APIView):

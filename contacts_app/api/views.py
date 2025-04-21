@@ -22,21 +22,36 @@ class ContactViewSet(ModelViewSet):
 
     def perform_update(self, serializer):
         """
-        Updates the user's email if the contact belongs to them and the new email is not already used.
+        Updates a contact if data has changed. Checks for duplicate names or emails.
+        - Skips update if no changes are detected.
+        - Raises validation errors if the new name or email already exists.
+        - Updates user's email and username if changed.
         """
-        contact = serializer.save()
+        contact = self.get_object()
         user = self.request.user
-        new_email = contact.email.lower()
-        old_email = user.email.lower()
+        data = serializer.validated_data
 
-        if contact.created_by == user and new_email != old_email:
-            if (
-                User.objects.filter(email__iexact=new_email)
-                .exclude(pk=user.pk)
-                .exists()
-            ):
-                raise ValidationError(
-                    {"email": "A user with that username already exists"}
-                )
+        new_name = data.get("name", contact.name)
+        new_email = data.get("email", contact.email)
+        new_phone_number = data.get("phone_number", contact.phone_number)
+
+        unchanged = (
+            contact.name == new_name and
+            contact.email.lower() == new_email.lower() and
+            contact.phone_number == new_phone_number
+        )
+        if unchanged:
+            return
+
+        if new_name.lower() != contact.name.lower():
+            if Contact.objects.filter(name__iexact=new_name, created_by=user).exclude(pk=contact.pk).exists():
+                raise ValidationError({"name": "A contact with this name already exists."})
+
+        if new_email.lower() != contact.email.lower():
+            if User.objects.filter(email__iexact=new_email).exclude(pk=user.pk).exists():
+                raise ValidationError({"email": "A user with that email already exists."})
             user.email = new_email
-            user.save()
+
+        user.username = new_name
+        user.save()
+        serializer.save()
