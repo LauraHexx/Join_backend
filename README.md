@@ -12,9 +12,8 @@ This is an API for managing tasks, categories, contacts, and subtasks. It allows
 
 ## Requirements
 
-Ensure the following prerequisites are installed on your system:
+Ensure the following prerequisites are installed on your env:
 
-- requirements.txt
 - A database like SQLite (default in Django) or another relational database (e.g., PostgreSQL)
 
 ## Installation
