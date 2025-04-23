@@ -16,6 +16,7 @@ class SubtaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subtask
         fields = ["id", "name", "status", "task", "task_id"]
+        read_only_fields = ["id"]
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -42,7 +43,8 @@ class CategorySerializer(serializers.ModelSerializer):
 class TaskSubtaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subtask
-        fields = ["name", "status"]
+        fields = ["id", "name", "status"]
+        read_only_fields = ["id"]
 
 
 class TaskSerializer(serializers.ModelSerializer):
