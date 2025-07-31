@@ -14,7 +14,7 @@ This is an API for managing tasks, categories, contacts, and subtasks. It allows
 
 Ensure the following prerequisites are installed on your env:
 
-- A database like SQLite (default in Django) or another relational database (e.g., PostgreSQL)
+- A database like SQLite (default in Django)
 
 ## Installation
 
@@ -60,3 +60,6 @@ Ensure the following prerequisites are installed on your env:
 ## Authentication
 
 This API requires user authentication. You can use the Django admin interface to create a user and obtain authentication tokens or implement token-based authentication through the Django REST Framework.
+
+## Frontend
+https://github.com/LauraHexx/Join_frontend/tree/my-backend
